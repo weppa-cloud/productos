@@ -1,5 +1,5 @@
 let productos = []; // Variable global para almacenar los productos
-
+let eventData ={};
 
 // Función para validar si el JSON es correcto
 function isJSONValid(str) {
@@ -21,13 +21,13 @@ window.addEventListener("message", function (event) {
     }
 
     // Procesar los datos del evento
-    const eventData = JSON.parse(event.data);
+    eventData = JSON.parse(event.data);
 
     // Mostrar mensaje de carga
-    document.getElementById('loading').style.display = 'flex';
+    // document.getElementById('loading').style.display = 'flex';
     // document.getElementById('resumen').style.display = 'none';
 
-    //let productos = []; // Variable global para almacenar los productos
+
 
     // Enviar los datos a n8n y esperar la respuesta
     fetch('https://n8n.weppa.co/webhook/productos', {
@@ -35,7 +35,7 @@ window.addEventListener("message", function (event) {
         headers: {
             'Content-Type': 'application/json'
         },
-        // body: JSON.stringify(eventData)
+        body: JSON.stringify(eventData)
     })
     .then(response => response.json())
     .then(n8nResponse => {
@@ -86,6 +86,7 @@ function mostrarProductos(productos) {
                     <h2>${name}</h2>
                     <p>${description}</p>
                     <div class="price">$${price}</div>
+                    <button onclick="enviarProducto(${id})">Enviar</button>
                 </div>
             `;
         });
@@ -110,3 +111,46 @@ function filterProducts() {
 
 // Añadir event listener al cuadro de búsqueda
 document.getElementById('search').addEventListener('input', filterProducts);
+
+
+function enviarProducto(idProducto) {
+    // Obtener el producto correspondiente
+    const productoSeleccionado = productos.find(producto => producto.id === idProducto);
+
+    if (!productoSeleccionado) {
+        console.error('Producto no encontrado');
+        return;
+    }
+    
+    console.log("Id conversacion: " + eventData.data.conversation.id);
+    // const id_conversacion = eventData.data.conversation.id;
+    const id_conversacion = eventData.data.conversation.id;
+    
+
+    // Aquí puedes agregar la información que llega con el evento inicial
+    const data = {
+        
+        // ...productoSeleccionado,
+        // Agregar cualquier otra información necesaria
+        "content": `Producto: ${productoSeleccionado.name}\nDescripción: ${productoSeleccionado.description}\nPrecio: ${productoSeleccionado.list_price}`,
+        "message_type": "outgoing"
+    };
+
+    // Realizar la solicitud POST
+    fetch(`https://chat.weppa.co/api/v1/accounts/1/conversations/${id_conversacion}/messages`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'api_access_token': 'JMWFcKWqAHtAUsrFrMqrzeVX'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(responseData => {
+        console.log('Producto enviado con éxito:', responseData);
+        // Aquí puedes manejar la respuesta de tu servidor
+    })
+    .catch(error => {
+        console.error('Error al enviar el producto:', error);
+    });
+}
