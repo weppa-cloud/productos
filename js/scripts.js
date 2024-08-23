@@ -1,3 +1,6 @@
+let productos = []; // Variable global para almacenar los productos
+
+
 // Función para validar si el JSON es correcto
 function isJSONValid(str) {
     try {
@@ -24,7 +27,7 @@ window.addEventListener("message", function (event) {
     document.getElementById('loading').style.display = 'flex';
     // document.getElementById('resumen').style.display = 'none';
 
-    let productos = []; // Variable global para almacenar los productos
+    //let productos = []; // Variable global para almacenar los productos
 
     // Enviar los datos a n8n y esperar la respuesta
     fetch('https://n8n.weppa.co/webhook/productos', {
@@ -39,7 +42,7 @@ window.addEventListener("message", function (event) {
         console.log('Received response from n8n:', n8nResponse);
 
         // Verifica si el campo result contiene el array de objetos
-        productos = n8nResponse.result || 'No hay productos disponibles';
+        productos = n8nResponse.result || [];
         mostrarProductos(productos); // Mostrar todos los productos inicialmente
         
         
@@ -104,3 +107,6 @@ function filterProducts() {
 
     mostrarProductos(filteredProducts); // Mostrar los productos filtrados
 }
+
+// Añadir event listener al cuadro de búsqueda
+document.getElementById('search').addEventListener('input', filterProducts);
